@@ -1,0 +1,5 @@
+# External configuration for users
+users:
+  - username: "user1"
+    password: "pass1"
+

@@ -187,6 +187,8 @@
       </div>
       <div>
         <button id="btnRefresh" class="btn">↻ Refresh</button>
+        <button id="btnFetchUsers" class="btn">👤 Users</button>
+        <button id="btnLogout" class="btn btn-danger">Logout</button>
       </div>
     </header>
 
@@ -194,14 +196,14 @@
       <div class="toolbar">
         <div class="muted">Base URL: <strong id="baseUrlText"></strong></div>
         <div class="spacer"></div>
-        <span class="muted">Semua operasi: GET, POST, PUT, DELETE</span>
+        <!-- <span class="muted">Semua operasi: GET, POST, PUT, DELETE</span> -->
       </div>
 
       <div class="grid">
         <!-- Form Tambah Idol Baru -->
         <div class="card">
           <h3>Tambah Idol Baru</h3>
-          <p class="muted">Isi semua field lalu klik Tambah.</p>
+          <!-- <p class="muted">Isi semua field lalu klik Tambah.</p> -->
           <form id="formAdd" class="form">
             <div class="field">
               <label for="name">Nama</label>
@@ -253,6 +255,7 @@
   <script>
     // Base URL API sesuai syarat
     const BASE_URL = 'http://localhost:8080/api/idols';
+    const USERS_URL = 'http://localhost:8080/api/users';
     document.getElementById('baseUrlText').textContent = BASE_URL;
 
     const tbody = document.getElementById('tbody');
@@ -267,17 +270,58 @@
     // Helper: validasi sederhana form
     function isEmpty(str) { return !str || !str.trim(); }
 
+    // Helper: ambil token dari localStorage
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    // Helper: cek login
+    function checkAuth() {
+      if (!getToken()) {
+        window.location.href = '/login.html';
+      }
+    }
+
     // Ambil semua idols dari API (GET)
     async function loadIdols() {
       try {
-        const res = await fetch(BASE_URL, { method: 'GET' });
+        const res = await fetch(BASE_URL, {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
         if (!res.ok) throw new Error('Gagal mengambil data');
         const data = await res.json();
         renderTable(data);
         renderJSON(data);
       } catch (err) {
-        renderJSON({ error: err.message, hint: 'Pastikan server berjalan di :8888' });
+        renderJSON({ error: err.message, hint: 'Pastikan server berjalan di :8080' });
       }
+    }
+
+    // Fetch users
+    async function fetchUsers() {
+      try {
+        const res = await fetch(USERS_URL, {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+        const data = await res.json();
+        renderJSON(data);
+      } catch (err) {
+        renderJSON({ error: err.message });
+      }
+    }
+
+    // Logout
+    async function logout() {
+      try {
+        await fetch('/api/logout', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+      } catch {}
+      localStorage.removeItem('token');
+      window.location.href = '/login.html';
     }
 
     // Render tabel idols dan tombol aksi
@@ -291,33 +335,26 @@
 
       for (const item of list) {
         const tr = document.createElement('tr');
-
         const tdId = document.createElement('td');
         tdId.textContent = item.id;
         tr.appendChild(tdId);
-
         const tdName = document.createElement('td');
         tdName.textContent = item.name;
         tr.appendChild(tdName);
-
         const tdGroup = document.createElement('td');
         tdGroup.textContent = item.group;
         tr.appendChild(tdGroup);
-
         const tdPos = document.createElement('td');
         tdPos.textContent = item.position;
         tr.appendChild(tdPos);
-
         const tdActions = document.createElement('td');
         const wrap = document.createElement('div');
         wrap.className = 'row-actions';
-
         // Tombol Edit -> munculkan form inline di baris
         const btnEdit = document.createElement('button');
         btnEdit.className = 'btn';
         btnEdit.textContent = '✎ Edit';
         btnEdit.addEventListener('click', () => showEditRow(tr, item));
-
         // Tombol Delete
         const btnDel = document.createElement('button');
         btnDel.className = 'btn btn-danger';
@@ -327,7 +364,6 @@
           await deleteIdol(item.id);
           await loadIdols();
         });
-
         wrap.appendChild(btnEdit);
         wrap.appendChild(btnDel);
         tdActions.appendChild(wrap);
@@ -402,7 +438,9 @@
     async function addIdol(payload) {
       const res = await fetch(BASE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken() },
         body: JSON.stringify(payload)
       });
       const data = await res.json().catch(() => ({}));
@@ -451,9 +489,12 @@
 
     // Tombol refresh
     document.getElementById('btnRefresh').addEventListener('click', loadIdols);
+    document.getElementById('btnFetchUsers').addEventListener('click', fetchUsers);
+    document.getElementById('btnLogout').addEventListener('click', logout);
 
+    // Cek token saat load
+    checkAuth();
     // Muat data awal saat halaman dibuka
-    // Sesuai syarat: harus langsung tampil 3 data awal dari API
     loadIdols();
   </script>
 </body>
