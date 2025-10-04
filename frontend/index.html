@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>K-Pop Idols API Client</title>
+  <style>
+    :root {
+      --bg: #0f172a; /* slate-900 */
+      --panel: #111827; /* gray-900 */
+      --muted: #94a3b8; /* slate-400 */
+      --text: #e5e7eb; /* gray-200 */
+      --accent: #22d3ee; /* cyan-400 */
+      --accent-2: #a78bfa; /* violet-400 */
+      --danger: #f87171; /* red-400 */
+      --success: #34d399; /* emerald-400 */
+      --warning: #fbbf24; /* amber-400 */
+      --card: #0b1220; /* dark panel */
+      --border: #1f2937; /* gray-800 */
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(167,139,250,.18), transparent),
+                  radial-gradient(800px 400px at 110% 10%, rgba(34,211,238,.18), transparent),
+                  var(--bg);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .title h1 { margin: 0; font-size: 22px; letter-spacing: .3px; }
+    .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(34,211,238,.2), rgba(167,139,250,.2));
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(17,24,39,.7), rgba(11,18,32,.8));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11,18,32,.6);
+    }
+    .toolbar .spacer { flex: 1; }
+
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(34,211,238,.25), rgba(167,139,250,.25));
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform .05s ease, filter .2s ease, background .2s ease;
+      text-decoration: none;
+    }
+    button:hover { filter: brightness(1.1); }
+    button:active { transform: translateY(1px); }
+    .btn-ghost { background: rgba(255,255,255,.04); }
+    .btn-danger { background: rgba(248,113,113,.2); border-color: rgba(248,113,113,.35); }
+    .btn-success { background: rgba(52,211,153,.2); border-color: rgba(52,211,153,.35); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: linear-gradient(180deg, rgba(17,24,39,.6), rgba(11,18,32,.7));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+    .card h3 { margin: 0 0 10px; font-size: 18px; }
+    .muted { color: var(--muted); font-size: 13px; }
+
+    .list {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .list thead { background: rgba(255,255,255,.04); }
+    .list th, .list td {
+      padding: 12px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .list tbody tr:hover { background: rgba(167,139,250,.06); }
+
+    .form {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+    .form .field { grid-column: span 4; }
+    .form .actions { grid-column: span 12; display: flex; gap: 10px; justify-content: flex-end; }
+    @media (max-width: 720px) {
+      .form .field { grid-column: span 12; }
+      .form .actions { justify-content: stretch; }
+      .form .actions button { flex: 1; }
+    }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    input, select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+    }
+
+    pre.json {
+      margin: 0;
+      padding: 14px;
+      background: #0a0f1a;
+      border-top: 1px solid var(--border);
+      overflow: auto;
+      max-height: 300px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty { text-align: center; color: var(--muted); padding: 20px; }
+    .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 2l2.39 4.84 5.34.78-3.86 3.76.91 5.31L12 14.77 7.22 16.69l.91-5.31L4.27 7.62l5.34-.78L12 2z" fill="url(#g)"/>
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#22d3ee"/>
+              <stop offset="1" stop-color="#a78bfa"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1>K‑Pop Idols — REST Client</h1>
+        <span class="badge">Fetch API + CORS</span>
+      </div>
+      <div>
+        <button id="btnRefresh" class="btn">↻ Refresh</button>
+        <button id="btnFetchUsers" class="btn">👤 Users</button>
+        <button id="btnLogout" class="btn btn-danger">Logout</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <div class="toolbar">
+        <div class="muted">Base URL: <strong id="baseUrlText"></strong></div>
+        <div class="spacer"></div>
+        <!-- <span class="muted">Semua operasi: GET, POST, PUT, DELETE</span> -->
+      </div>
+
+      <div class="grid">
+        <!-- Form Tambah Idol Baru -->
+        <div class="card">
+          <h3>Tambah Idol Baru</h3>
+          <!-- <p class="muted">Isi semua field lalu klik Tambah.</p> -->
+          <form id="formAdd" class="form">
+            <div class="field">
+              <label for="name">Nama</label>
+              <input id="name" name="name" type="text" placeholder="cth. Jisung" required />
+            </div>
+            <div class="field">
+              <label for="group_name">Grup</label>
+              <input id="group_name" name="group_name" type="text" placeholder="cth. NCT" required />
+            </div>
+            <div class="field">
+              <label for="position">Posisi</label>
+              <input id="position" name="position" type="text" placeholder="cth. Main Dancer" required />
+            </div>
+            <div class="actions">
+              <button type="reset" class="btn btn-ghost">Reset</button>
+              <button type="submit" class="btn btn-success">+ Tambah</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Daftar Idols -->
+        <div class="card">
+          <h3>Daftar Idols</h3>
+          <div id="tableWrapper">
+            <table class="list" aria-label="Daftar Idols">
+              <thead>
+                <tr>
+                  <th style="width:80px">ID</th>
+                  <th>Nama</th>
+                  <th>Grup</th>
+                  <th>Posisi</th>
+                  <th style="width:230px">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+            <div id="emptyState" class="empty" style="display:none">Belum ada data.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON Viewer -->
+      <pre id="jsonOut" class="json" aria-label="JSON Output"></pre>
+    </div>
+
+    <p class="muted" style="margin-top:14px">Tip: Jika CORS error, pastikan server aktif dan mengizinkan <em>Access-Control-Allow-Origin: *</em>.</p>
+  </div>
+
+  <script>
+    // Base URL API sesuai syarat
+    const BASE_URL = 'http://localhost:8080/api/idols';
+    const USERS_URL = 'http://localhost:8080/api/users';
+    document.getElementById('baseUrlText').textContent = BASE_URL;
+
+    const tbody = document.getElementById('tbody');
+    const jsonOut = document.getElementById('jsonOut');
+    const emptyState = document.getElementById('emptyState');
+
+    // Helper: render JSON dengan rapih
+    function renderJSON(data) {
+      jsonOut.textContent = JSON.stringify(data, null, 2);
+    }
+
+    // Helper: validasi sederhana form
+    function isEmpty(str) { return !str || !str.trim(); }
+
+    // Helper: ambil token dari localStorage
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    // Helper: cek login
+    function checkAuth() {
+      if (!getToken()) {
+        window.location.href = '/login.html';
+      }
+    }
+
+    // Ambil semua idols dari API (GET)
+    async function loadIdols() {
+      try {
+        const res = await fetch(BASE_URL, {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+        if (!res.ok) throw new Error('Gagal mengambil data');
+        const data = await res.json();
+        renderTable(data);
+        renderJSON(data);
+      } catch (err) {
+        renderJSON({ error: err.message, hint: 'Pastikan server berjalan di :8080' });
+      }
+    }
+
+    // Fetch users
+    async function fetchUsers() {
+      try {
+        const res = await fetch(USERS_URL, {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+        const data = await res.json();
+        renderJSON(data);
+      } catch (err) {
+        renderJSON({ error: err.message });
+      }
+    }
+
+    // Logout
+    async function logout() {
+      try {
+        await fetch('/api/logout', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+      } catch {}
+      localStorage.removeItem('token');
+      window.location.href = '/login.html';
+    }
+
+    // Render tabel idols dan tombol aksi
+    function renderTable(list) {
+      tbody.innerHTML = '';
+      if (!Array.isArray(list) || list.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      for (const item of list) {
+        const tr = document.createElement('tr');
+        const tdId = document.createElement('td');
+        tdId.textContent = item.id;
+        tr.appendChild(tdId);
+        const tdName = document.createElement('td');
+        tdName.textContent = item.name;
+        tr.appendChild(tdName);
+        const tdGroup = document.createElement('td');
+        tdGroup.textContent = item.group_name;
+        tr.appendChild(tdGroup);
+        const tdPos = document.createElement('td');
+        tdPos.textContent = item.position;
+        tr.appendChild(tdPos);
+        const tdActions = document.createElement('td');
+        const wrap = document.createElement('div');
+        wrap.className = 'row-actions';
+        // Tombol Edit -> munculkan form inline di baris
+        const btnEdit = document.createElement('button');
+        btnEdit.className = 'btn';
+        btnEdit.textContent = '✎ Edit';
+        btnEdit.addEventListener('click', () => showEditRow(tr, item));
+        // Tombol Delete
+        const btnDel = document.createElement('button');
+        btnDel.className = 'btn btn-danger';
+        btnDel.textContent = '🗑 Delete';
+        btnDel.addEventListener('click', async () => {
+          if (!confirm(`Hapus idol #${item.id} (${item.name})?`)) return;
+          await deleteIdol(item.id);
+          await loadIdols();
+        });
+        wrap.appendChild(btnEdit);
+        wrap.appendChild(btnDel);
+        tdActions.appendChild(wrap);
+        tr.appendChild(tdActions);
+        tbody.appendChild(tr);
+      }
+    }
+
+    // Tampilkan form edit inline untuk 1 baris
+    function showEditRow(row, item) {
+      // Jika sudah ada form edit di bawah baris ini, hapus dulu
+      const next = row.nextElementSibling;
+      if (next && next.classList.contains('edit-row')) {
+        next.remove();
+      }
+
+      const editTr = document.createElement('tr');
+      editTr.className = 'edit-row';
+      const td = document.createElement('td');
+      td.colSpan = 5;
+      td.innerHTML = `
+        <div class="card" style="margin-top:8px">
+          <div class="form" id="formEdit-${item.id}">
+            <div class="field">
+              <label>Nama</label>
+              <input type="text" name="name" value="${escapeHtml(item.name)}" required />
+            </div>
+            <div class="field">
+              <label>Grup</label>
+              <input type="text" name="group_name" value="${escapeHtml(item.group_name)}" required />
+            </div>
+            <div class="field">
+              <label>Posisi</label>
+              <input type="text" name="position" value="${escapeHtml(item.position)}" required />
+            </div>
+            <div class="actions">
+              <button type="button" class="btn btn-ghost" data-action="cancel">Batal</button>
+              <button type="button" class="btn" data-action="save">Simpan</button>
+            </div>
+          </div>
+        </div>`;
+      editTr.appendChild(td);
+      row.insertAdjacentElement('afterend', editTr);
+
+      const form = td.querySelector(`#formEdit-${item.id}`);
+      form.querySelector('[data-action="cancel"]').addEventListener('click', () => editTr.remove());
+      form.querySelector('[data-action="save"]').addEventListener('click', async () => {
+        const name = form.querySelector('input[name="name"]').value;
+        const group_name = form.querySelector('input[name="group_name"]').value;
+        const position = form.querySelector('input[name="position"]').value;
+        if (isEmpty(name) || isEmpty(group_name) || isEmpty(position)) {
+          alert('Semua field wajib diisi.');
+          return;
+        }
+        await updateIdol(item.id, { name, group_name, position });
+        await loadIdols();
+        editTr.remove();
+      });
+    }
+
+    // Escape sederhana untuk mencegah HTML injection saat render value ke input
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    // Request: POST tambah idol
+    async function addIdol(payload) {
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken() },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Gagal menambah idol');
+      return data;
+    }
+
+    // Request: PUT update idol
+    async function updateIdol(id, payload) {
+      const res = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Gagal mengupdate idol');
+      return data;
+    }
+
+    // Request: DELETE idol
+    async function deleteIdol(id) {
+      const res = await fetch(`${BASE_URL}/${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + getToken() } });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Gagal menghapus idol');
+      return data;
+    }
+
+    // Submit form tambah idol
+    document.getElementById('formAdd').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const group_name = document.getElementById('group_name').value;
+      const position = document.getElementById('position').value;
+      if (isEmpty(name) || isEmpty(group_name) || isEmpty(position)) {
+        alert('Semua field wajib diisi.');
+        return;
+      }
+      try {
+        await addIdol({ name, group_name, position });
+        e.target.reset();
+        await loadIdols();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    // Tombol refresh
+    document.getElementById('btnRefresh').addEventListener('click', loadIdols);
+    document.getElementById('btnFetchUsers').addEventListener('click', fetchUsers);
+    document.getElementById('btnLogout').addEventListener('click', logout);
+
+    // Cek token saat load
+    checkAuth();
+    // Muat data awal saat halaman dibuka
+    loadIdols();
+
+  //   // simpan user info setelah login
+  // function setUserInfo(username) {
+  //   localStorage.setItem('username', username);
+  // }
+
+  // // ambil username dari storage
+  // function getUserInfo() {
+  //   return localStorage.getItem('username');
+  // }
+
+  // // atur tombol sesuai role
+  // function renderRoleUI() {
+  //   const username = getUserInfo();
+  //   const btnUsers = document.getElementById('btnFetchUsers');
+  //   const btnAdmin = document.getElementById('btnFetchAdmin');
+
+  //   if (username === 'admin') {
+  //     btnAdmin.style.display = 'inline-flex';
+  //     btnUsers.style.display = 'none';
+  //   } else if (username === 'user') {
+  //     btnUsers.style.display = 'inline-flex';
+  //     btnAdmin.style.display = 'none';
+  //   } else {
+  //     // default: hide semua kalau ga login
+  //     btnUsers.style.display = 'none';
+  //     btnAdmin.style.display = 'none';
+  //   }
+  // }
+
+  // // Logout
+  // async function logout() {
+  //   try {
+  //     await fetch('/api/logout', {
+  //       method: 'POST',
+  //       headers: { 'Authorization': 'Bearer ' + getToken() }
+  //     });
+  //   } catch {}
+  //   localStorage.removeItem('token');
+  //   localStorage.removeItem('username'); // hapus juga username
+  //   window.location.href = '/login.html';
+  // }
+
+  // // panggil saat page load
+  // checkAuth();
+  // renderRoleUI();
+  // loadIdols();
+</script>
+</body>
+</html>
+
+
